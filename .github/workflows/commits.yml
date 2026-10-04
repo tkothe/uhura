@@ -1,0 +1,29 @@
+name: Commit messages
+on:
+  push:
+  pull_request:
+    # "edited" re-runs the check when a pull request's title is changed.
+    types: [opened, edited, synchronize, reopened]
+permissions:
+  contents: read
+jobs:
+  conventional:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Commit subjects of the push
+        if: github.event_name == 'push'
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: |
+          # A new branch, or a force push whose old tip is gone: check the whole history.
+          if git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then range="$BEFORE..$AFTER"; else range="$AFTER"; fi
+          git log --no-merges --format=%s "$range" | python3 scripts/check_conventional.py
+      - name: Pull request title
+        if: github.event_name == 'pull_request'
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: printf '%s\n' "$TITLE" | python3 scripts/check_conventional.py
