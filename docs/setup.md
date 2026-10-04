@@ -115,12 +115,26 @@ uv run uhura setup-tools           # reads the address from the local ngrok tunn
 ```
 
 `setup-tools` stores the tool secret in ElevenLabs' secret store, creates the tools
-`ask_principal` and `final_check`, and attaches them to the agent. Run it again whenever
-the public address changes; a free ngrok address changes on every restart.
+`ask_principal`, `final_check` and `report_progress`, and attaches them to the agent. Run
+it again whenever the public address changes; a free ngrok address changes on every
+restart.
 
 Only `/agent-tools/*` needs to be reachable from the internet. Those endpoints require
 the tool secret; everything else, including the MCP endpoint `/mcp`, requires a user
 token.
+
+**What the tunnel exposes.** A tunnel such as ngrok forwards *everything* on port 8787,
+not only `/agent-tools/*`: the API, `/mcp` and the interactive API docs at `/docs` are
+reachable too. Calls, transcripts and steering need a user token or the tool secret,
+which is why the service refuses to start with weak ones; only `/health`, `/docs` and
+`/openapi.json` answer without one, and they contain no data. Still, stop the tunnel when
+you are not using Uhura, and if you use Uhura only from this machine, connect MCP clients
+to `http://localhost:8787/mcp`, not to the tunnel's address.
+
+**The ngrok inspector.** While ngrok runs, `http://127.0.0.1:4040` lists every request
+that came through the tunnel, with headers and bodies. That is useful to see whether the
+agent's tool calls arrive, but it also shows the tool secret header and the agent's
+questions. It is only reachable from your own machine.
 
 ## 4. Connect a phone number
 
