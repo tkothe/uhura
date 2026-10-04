@@ -7,6 +7,8 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
 
+# The package metadata names README.md and LICENSE, so building it needs them.
+COPY README.md LICENSE ./
 COPY src ./src
 RUN uv sync --frozen --no-dev
 
