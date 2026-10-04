@@ -2,6 +2,9 @@ name: CI
 on:
   push:
   pull_request:
+# The tests only need to read the code.
+permissions:
+  contents: read
 jobs:
   test:
     runs-on: ubuntu-latest
