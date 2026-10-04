@@ -43,17 +43,24 @@ been verified in text conversations, and no English call has been made yet. See
    audio is kept.
 
 ```console
-$ uhura draft --to "030 23125 000" --principal "Erika Musterfrau" \
-    --goal "Fragen, ob der Laden am Freitag geöffnet hat."
+$ uhura draft --to "030 23125 000" --principal "Erika Musterfrau" --language de \
+    --topic "eine Frage zu Ihren Öffnungszeiten" \
+    --goal "Ask whether the shop is open on Friday."
 Message composed, Captain. Awaiting your order to transmit.
   call id : 74b8167429cf
   number  : +493023125000
   opening : Guten Tag, hier spricht ein KI-Assistent im Auftrag von Erika Musterfrau. …
+  after menu: Guten Tag, ich bin ein KI-Assistent … Es geht um eine Frage zu Ihren Öffnungszeiten. …
 
 $ uhura rehearse 74b8167429cf      # text conversation, nobody is called
 $ uhura confirm 74b8167429cf       # dials, follows the call, prompts for answers
 Hailing frequencies open.
 ```
+
+The brief can be in English; the agent speaks the call's language (`--language`, German
+here) and always opens with the fixed disclosure line for it. The topic completes the
+sentence "Es geht um …" in the line the agent says to the first person it reaches after a
+phone menu or queue, so it is written in the call's language.
 
 ## Responsible use
 
