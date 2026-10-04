@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="240" viewBox="0 0 840 240" role="img" aria-label="Uhura: hailing frequencies open">
+  <style>
+    .bg { fill: #ffffff; }
+    .ear { stroke: #1f2937; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .ink { fill: #1f2937; }
+    .tip { fill: #e5e7eb; stroke: #9ca3af; stroke-width: 2; }
+    .metal { fill: #9ca3af; }
+    .fin { fill: #cbd5e1; stroke: #64748b; stroke-width: 1.5; }
+    .core { fill: #475569; }
+    .accent { fill: #d97706; }
+    .wave { stroke: #d97706; fill: none; stroke-linecap: round; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #0d1117; }
+      .ear { stroke: #e5e7eb; }
+      .ink { fill: #e5e7eb; }
+      .tip { fill: #f8fafc; stroke: #cbd5e1; }
+      .metal { fill: #94a3b8; }
+      .fin { fill: #cbd5e1; stroke: #334155; }
+      .core { fill: #1e293b; }
+      .accent { fill: #f59e0b; }
+      .wave { stroke: #f59e0b; }
+    }
+  </style>
+  <rect class="bg" width="840" height="240" rx="18"/>
+
+  <!-- a stylised ear, rim on the left, lobe at the bottom -->
+  <g class="ear">
+    <path stroke-width="8" d="M 132 46 C 84 40 56 80 62 120 C 66 150 88 160 92 182 C 96 204 124 210 134 190"/>
+    <path stroke-width="8" d="M 132 46 C 156 48 166 72 156 96"/>
+    <path stroke-width="5" d="M 118 70 C 94 78 88 110 102 132 C 108 142 112 150 112 160"/>
+  </g>
+
+  <!-- the earpiece: soft tip in the canal, an angled tube, a ribbed cylinder -->
+  <g transform="translate(122 112)">
+    <!-- tip -->
+    <path class="tip" d="M -4 -10 C -14 -8 -16 8 -4 10 L 12 7 L 12 -7 Z"/>
+    <!-- angled tube -->
+    <g transform="rotate(28)">
+      <rect class="metal" x="10" y="-6" width="34" height="12" rx="4"/>
+    </g>
+    <!-- ribbed cylinder: a core with a stack of fins -->
+    <g transform="translate(40 20) rotate(28)">
+      <rect class="core" x="0" y="-15" width="74" height="30" rx="6"/>
+      <rect class="fin" x="2"  y="-24" width="7" height="48" rx="3.5"/>
+      <rect class="fin" x="12" y="-24" width="7" height="48" rx="3.5"/>
+      <rect class="fin" x="22" y="-24" width="7" height="48" rx="3.5"/>
+      <rect class="fin" x="32" y="-24" width="7" height="48" rx="3.5"/>
+      <rect class="fin" x="42" y="-24" width="7" height="48" rx="3.5"/>
+      <rect class="fin" x="52" y="-24" width="7" height="48" rx="3.5"/>
+      <rect class="fin" x="62" y="-24" width="7" height="48" rx="3.5"/>
+      <rect class="metal" x="71" y="-12" width="8" height="24" rx="4"/>
+      <circle class="accent" cx="82" cy="0" r="5"/>
+    </g>
+  </g>
+
+  <!-- signal arcs, leaving the end of the earpiece -->
+  <g transform="translate(246 168) rotate(28)">
+    <path class="wave" stroke-width="6" opacity="1.0" d="M 4 -16 A 22 22 0 0 1 4 16"/>
+    <path class="wave" stroke-width="6" opacity="0.7" d="M 16 -30 A 38 38 0 0 1 16 30"/>
+    <path class="wave" stroke-width="6" opacity="0.4" d="M 28 -44 A 56 56 0 0 1 28 44"/>
+  </g>
+
+  <text class="ink" x="340" y="118" font-family="Helvetica Neue, Helvetica, Arial, sans-serif"
+        font-size="80" font-weight="700" letter-spacing="20">UHURA</text>
+  <text class="accent" x="343" y="162" font-family="Menlo, Consolas, monospace"
+        font-size="20" letter-spacing="5">HAILING FREQUENCIES OPEN</text>
+</svg>
