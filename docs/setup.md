@@ -90,6 +90,28 @@ unless you set a different one for a language with `UHURA_VOICE_ID_<LANG>`, for 
 `UHURA_VOICE_ID_EN` so that English calls do not get a German accent. Whether the
 per-language voice is used when a call's language is set per call has not been
 verified in a spoken call yet.
+
+The voices used so far, as a starting point:
+
+| Language | Voice | Id | Notes |
+|---|---|---|---|
+| German | Ben – Conversational Voice | `MMwckqU477oQxnAk1SgA` | Used in all real calls; fixed most mispronounced German names |
+| English | Eric – Smooth, Trustworthy | `cjVigY5qzO86Huf0OWal` | Set as `UHURA_VOICE_ID_EN`; no English call made yet |
+
+A voice id is the same in every account, but not every voice is available in every
+account:
+
+- **Eric** is one of ElevenLabs' default voices; every account has it, nothing to do.
+- **Ben** comes from the community voice library and must be added to your account
+  before `setup-agent` can use it: in the ElevenLabs app, *Voices → Voice Library*,
+  search for "Ben – Conversational Voice", check that its id ("Copy voice ID") is
+  `MMwckqU477oQxnAk1SgA` (several voices are called Ben), and add it. Its creator could
+  withdraw it from the library one day; then pick another German voice.
+
+A key restricted as described above may not read voices, so Uhura cannot check this for
+you. What happens when a voice is missing (an error from `setup-agent`, or ElevenLabs
+falling back to another voice) has not been tested; add the voices before running it.
+
 To compare voices, use ElevenLabs' Text to Speech page with the model "Eleven Flash v2.5"
 and the opening line. Cloning a voice needs a paid plan (Starter or higher) and the
 consent of the person whose voice it is.
