@@ -159,8 +159,29 @@ Things that can get in the way:
   Twilio and plays a trial announcement first.
 - **Geo permissions.** Calls to a country must be enabled in Twilio under Voice → Settings
   → Geo permissions. A call that fails immediately is often this.
-- **Showing your own number.** ElevenLabs supports Twilio "verified caller IDs" for
-  outbound calls. Not set up or tested here.
+- **Showing your own number.** See the next section: no purchased number needed.
+
+### Your own number as caller ID, through Twilio (verified)
+
+People called by Uhura can see your own number instead of a purchased one, for example
+your German mobile number. Twilio calls this a verified caller ID; it needs a Twilio
+account, but no number bought there.
+
+1. In Twilio: Phone Numbers → **Verified Caller IDs** → add your number and confirm it
+   with the call or code Twilio sends.
+2. In the ElevenLabs app: **Phone Numbers** → Import number → Twilio, with your number and
+   the same API key SID and secret as above. ElevenLabs marks it as outbound only.
+3. Put its id (`phnum_…`) into `ELEVENLABS_PHONE_NUMBER_ID` and restart the service.
+   `UHURA_TELEPHONY` stays `twilio`.
+
+What changes: the person called sees your number, and a call-back reaches you, not
+Uhura; the opening line says on whose behalf the AI calls, which fits. Twilio bills the
+call as before. A verified number cannot receive calls through ElevenLabs, so the agent is
+then not reachable by phone at all.
+
+Verified: a German mobile number as caller ID, calling a German mobile phone, was shown
+correctly. German networks restrict German caller IDs on calls that arrive from abroad;
+calls to landlines with this setup are not tested yet.
 
 ### Another provider, as a SIP trunk (not verified)
 

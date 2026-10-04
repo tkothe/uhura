@@ -54,15 +54,18 @@ check in code such as a confirmation code shown only in the draft.
 
 ## Telephony
 
-**Next: a German caller ID.** Calls currently come from a US number, which people may
-not pick up and which is billed as international. Candidate: sipgate's "trunking 2"
-plan, listed at 0 €/month and open to private customers, connected as a SIP trunk
-(`UHURA_TELEPHONY=sip`, untested). Open: whether sipgate (or Placetel) accepts
-ElevenLabs' calls without SIP registration.
+**Next: test the caller ID towards landlines.** Outgoing calls can show your own German
+number (a Twilio verified caller ID, see [setup.md](setup.md)); a call to a German mobile
+phone showed it correctly. German networks restrict German caller IDs on calls from
+abroad, so one test call to a landline would show whether the number is displayed there
+too.
 
-**Your own number as caller ID.** ElevenLabs supports Twilio "verified caller IDs" for
-outbound calls. Callers would see your mobile number, and call-backs reach you. Open: how
-that combines with the AI disclosure; not tried.
+**A German number for incoming calls.** A verified caller ID cannot receive calls, so
+without a purchased number nobody can call Uhura. Incoming calls (see call screening
+below) need one; a German
+one could come from sipgate's "trunking 2" plan, listed at 0 €/month and open to private
+customers, connected as a SIP trunk (`UHURA_TELEPHONY=sip`, untested). Open: whether
+sipgate (or Placetel) accepts ElevenLabs' calls without SIP registration.
 
 **Incoming call screening.** Forward calls from numbers not in your contacts to Uhura:
 on iOS, "silence unknown callers" plus conditional call forwarding (`**004*<number>#`) to
