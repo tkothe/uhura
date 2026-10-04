@@ -18,11 +18,11 @@ instead of wherever the starting shell points it, and stop the service with a sh
 graceful-shutdown timeout: a restart currently waits indefinitely for an MCP client's
 open connection and had to be forced several times.
 
-**Next: `uhura init`, a setup assistant.** Writes `.env` (generating token and tool
-secret), asks for the ElevenLabs key, creates the agent, asks for the Twilio number and
-API key and imports the number into ElevenLabs through the API (`POST
-/v1/convai/phone-numbers`) instead of the dashboard, optionally enables the allowed
-countries in Twilio's geo permissions, and ends with `uhura check`. Goal: a colleague
+**Next: extend `uhura init` into a setup assistant.** It already writes `.env` with a
+generated token and tool secret. Still to add: ask for the ElevenLabs key, create the
+agent, ask for the Twilio number and API key and import the number into ElevenLabs
+through the API (`POST /v1/convai/phone-numbers`) instead of the dashboard, optionally
+enable the allowed countries in Twilio's geo permissions, and end with `uhura check`. Goal: a colleague
 creates two accounts, runs one command, and is done. Open: whether the number import
 works with the restricted key (probably, it is ElevenAgents write); whether geo
 permissions can be changed with a restricted Twilio key.

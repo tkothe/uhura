@@ -105,7 +105,8 @@ or queue; keep turns short and do not repeat the briefing.
 
 ```sh
 uv sync
-cp .env.example .env        # add your ElevenLabs key, invent a token and a tool secret
+uv run uhura init           # creates .env with a fresh token and tool secret
+                            # then add your ElevenLabs key to .env
 uv run uhura setup-agent    # creates the agent; put the printed id into .env
 uv run uhura serve          # http://127.0.0.1:8787
 uv run uhura check          # tells you what is still missing
@@ -118,6 +119,7 @@ need, Docker and hosting for several people, is in [docs/setup.md](docs/setup.md
 
 | Command | What it does |
 |---|---|
+| `uhura init [--name NAME]` | Create `.env` with a fresh user token and tool secret (never shown, never overwritten) |
 | `uhura serve` | Run the service |
 | `uhura setup-agent` | Create or update the agent in your ElevenLabs account |
 | `uhura setup-tools [--url URL]` | Point the agent's tools at the service's public address (default: local ngrok tunnel) |

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import secrets
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -50,6 +51,57 @@ def check_secrets(settings: Settings) -> None:
             f"{' and '.join(weak)} {'is' if len(weak) == 1 else 'are'} a placeholder or shorter than "
             f"{MIN_SECRET_LENGTH} characters; generate new ones with `openssl rand -hex 24`"
         )
+
+
+def new_secret() -> str:
+    """A random value as strong as `openssl rand -hex 24`."""
+    return secrets.token_hex(24)
+
+
+def fill_secrets(env_text: str, name: str, fresh: bool = False) -> tuple[str, list[str]]:
+    """Replace placeholder or weak credentials in the text of a .env file with fresh ones.
+
+    `fresh` means the text is the template: its example user is replaced by `name`. In an
+    existing file every user keeps their name and real values stay as they are, so running
+    it again changes nothing. Returns the new text and what was generated, described by
+    name only, never by value.
+    """
+    lines = env_text.splitlines()
+    generated: list[str] = []
+    values = {}
+    for line in lines:
+        key, sep, value = line.partition("=")
+        if sep and not line.lstrip().startswith("#"):
+            values[key.strip()] = value.strip()
+
+    pairs = [] if fresh else [p.partition(":") for p in _csv(values.get("UHURA_TOKENS", ""))]
+    tokens = []
+    for user, _, token in pairs:
+        if not token or _weak(token):
+            user, token = user or name, new_secret()
+            generated.append(f"a token for '{user}'")
+        tokens.append(f"{user}:{token}")
+    if not tokens:
+        tokens = [f"{name}:{new_secret()}"]
+        generated.append(f"a token for '{name}'")
+    own = next((t.partition(":")[2] for t in tokens if t.partition(":")[0] == name), tokens[0].partition(":")[2])
+
+    updates = {"UHURA_TOKENS": ",".join(tokens)}
+    if not values.get("UHURA_TOOL_SECRET") or _weak(values["UHURA_TOOL_SECRET"]):
+        updates["UHURA_TOOL_SECRET"] = new_secret()
+        generated.append("the tool secret")
+    if not values.get("UHURA_TOKEN") or _weak(values["UHURA_TOKEN"]):
+        updates["UHURA_TOKEN"] = own
+        generated.append("UHURA_TOKEN for the CLI and MCP")
+
+    out = []
+    for line in lines:
+        key = line.partition("=")[0].strip()
+        if "=" in line and not line.lstrip().startswith("#") and key in updates:
+            line = f"{key}={updates.pop(key)}"
+        out.append(line)
+    out += [f"{key}={value}" for key, value in updates.items()]  # keys the file did not have
+    return "\n".join(out) + "\n", generated
 
 
 def _csv(value: str) -> list[str]:

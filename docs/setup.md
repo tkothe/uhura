@@ -17,10 +17,13 @@ Rehearsals need the ElevenLabs account and the public address, but no phone numb
 
 ```sh
 uv sync
-cp .env.example .env
+uv run uhura init --name erika
 ```
 
-Fill in `.env`:
+`uhura init` creates `.env` from `.env.example` and fills in a random user token (for
+the name you give, default your login name), the tool secret and `UHURA_TOKEN`. It does
+not print them, sets the file to be readable by you only, and leaves real values alone,
+so running it again is harmless. Fill in the rest of `.env`:
 
 | Setting | Meaning |
 |---|---|
@@ -41,7 +44,8 @@ Fill in `.env`:
 | `UHURA_RETENTION_DAYS` | Calls and transcripts are deleted after this (0 = keep) |
 | `UHURA_URL`, `UHURA_TOKEN` | Used by the CLI and the MCP server to reach the service |
 
-Generate the token and the secret with `openssl rand -hex 24`. The service refuses to start
+`uhura init` generates the token and the secret; to add more people later, generate a
+token with `openssl rand -hex 24` and append `name:token` to `UHURA_TOKENS`. The service refuses to start
 if a token or the tool secret is a placeholder (`change-me`) or shorter than 16
 characters, and `setup-tools` refuses such a tool secret; `uhura check` reports it.
 `UHURA_TOKEN` must be one of the tokens in `UHURA_TOKENS`. `.env` is ignored by git; never commit or share it.

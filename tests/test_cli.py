@@ -105,7 +105,7 @@ def test_every_command_is_wired_to_a_handler():
     parser = build_parser()
     commands = parser._subparsers._group_actions[0].choices
     assert set(commands) == {
-        "serve", "setup-agent", "setup-tools", "check", "draft", "rehearse",
+        "init", "serve", "setup-agent", "setup-tools", "check", "draft", "rehearse",
         "confirm", "watch", "say", "show", "list",
     }  # fmt: skip
     assert all(callable(sub.get_default("func")) for sub in commands.values())
@@ -142,3 +142,56 @@ def test_progress_flag_and_event_formatting():
     args = build_parser().parse_args(["draft", "--to", "1", "--principal", "E", "--goal", "G", "--no-progress"])
     assert args.progress is False
     assert format_rehearsal_event({"type": "progress", "stage": "hold", "note": "Position 4"}) == "[hold] Position 4"
+
+
+EXAMPLE = """# --- Uhura service ---
+UHURA_TOKENS=erika:change-me
+UHURA_TOOL_SECRET=change-me-too
+ELEVENLABS_API_KEY=
+UHURA_TOKEN=change-me
+"""
+
+
+def test_init_creates_env_with_fresh_secrets_and_never_shows_them(tmp_path, monkeypatch, capsys):
+    from uhura.config import Settings, weak_secrets
+
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / ".env.example").write_text(EXAMPLE)
+    cli.main(["init", "--name", "anna"])
+
+    env = (tmp_path / ".env").read_text()
+    values = dict(line.split("=", 1) for line in env.splitlines() if "=" in line and not line.startswith("#"))
+    name, _, token = values["UHURA_TOKENS"].partition(":")
+    assert name == "anna" and values["UHURA_TOKEN"] == token
+    assert weak_secrets(Settings(tokens={token: name}, tool_secret=values["UHURA_TOOL_SECRET"])) == []
+    assert values["ELEVENLABS_API_KEY"] == "" and "# --- Uhura service ---" in env
+    assert (tmp_path / ".env").stat().st_mode & 0o077 == 0  # readable by the owner only
+
+    out = capsys.readouterr().out
+    assert "a token for 'anna'" in out and "the tool secret" in out
+    assert token not in out and values["UHURA_TOOL_SECRET"] not in out
+
+
+def test_init_keeps_real_values_and_changes_nothing_the_second_time(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    real = "a" * 48
+    (tmp_path / ".env").write_text(
+        f"UHURA_TOKENS=erika:{real},max:short\nUHURA_TOOL_SECRET={real}\nUHURA_TOKEN={real}\n"
+    )
+    cli.main(["init", "--name", "erika"])
+    env = (tmp_path / ".env").read_text()
+    assert f"erika:{real}" in env and "max:short" not in env and "max:" in env
+    assert f"UHURA_TOOL_SECRET={real}" in env and f"UHURA_TOKEN={real}" in env
+
+    capsys.readouterr()
+    cli.main(["init", "--name", "erika"])
+    assert (tmp_path / ".env").read_text() == env
+    assert "nothing changed" in capsys.readouterr().out
+
+
+def test_a_weak_token_keeps_its_owner():
+    from uhura.config import fill_secrets
+
+    text, generated = fill_secrets("UHURA_TOKENS=erika:short\nUHURA_TOOL_SECRET=\nUHURA_TOKEN=\n", name="anna")
+    assert "UHURA_TOKENS=erika:" in text and "anna" not in text
+    assert generated[0] == "a token for 'erika'"

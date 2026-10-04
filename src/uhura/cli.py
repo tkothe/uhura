@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import getpass
 import json
 import sys
 import threading
@@ -56,6 +57,33 @@ def cmd_serve(args: argparse.Namespace) -> None:
         sys.exit(f"Not starting: {exc}.")
     print(phrases.STANDING_BY)
     uvicorn.run(app, host=args.host, port=args.port)
+
+
+def cmd_init(args: argparse.Namespace) -> None:
+    from pathlib import Path
+
+    from .config import fill_secrets
+
+    env, example = Path(".env"), Path(".env.example")
+    if env.exists():
+        text = env.read_text()
+    elif example.exists():
+        text = example.read_text()
+    else:
+        sys.exit("No .env or .env.example here; run this in the Uhura directory.")
+    new_text, generated = fill_secrets(text, args.name, fresh=not env.exists())
+    if not env.exists() or new_text != text:
+        env.write_text(new_text)
+        env.chmod(0o600)  # it holds keys; only you should read it
+    if generated:
+        listed = ", ".join(generated[:-1]) + " and " + generated[-1] if len(generated) > 1 else generated[0]
+        print(f"Generated {listed} in .env (values are not shown).")
+    else:
+        print(".env already has strong tokens and a tool secret; nothing changed.")
+    if "ELEVENLABS_API_KEY=\n" in new_text or not any(
+        line.startswith("ELEVENLABS_API_KEY=") for line in new_text.splitlines()
+    ):
+        print("Next: add your ELEVENLABS_API_KEY to .env, then run `uhura setup-agent`.")
 
 
 def cmd_setup_agent(args: argparse.Namespace) -> None:
@@ -264,6 +292,10 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--host", default="127.0.0.1")
     p.add_argument("--port", type=int, default=8787)
     p.set_defaults(func=cmd_serve)
+
+    p = sub.add_parser("init", help="create .env with a fresh user token and tool secret")
+    p.add_argument("--name", default=getpass.getuser().lower(), help="whose token it is (default: your login name)")
+    p.set_defaults(func=cmd_init)
 
     p = sub.add_parser("setup-agent", help="create or update the caller agent in your ElevenLabs account")
     p.add_argument("--name", default="Uhura")
