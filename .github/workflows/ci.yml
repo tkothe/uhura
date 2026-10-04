@@ -16,8 +16,9 @@ jobs:
       - run: uv run ruff format --check .
       - run: uv run pytest
   docker:
-    # The image is built from a subset of the repo; a missing file only shows up here.
+    # Builds the image and runs it the way docs/setup.md does; problems that only show up
+    # in the container (a file missing from the image, a setting from .env) fail here.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: docker build -t uhura .
+      - run: scripts/docker_smoke.sh

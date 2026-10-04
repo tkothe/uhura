@@ -36,7 +36,7 @@ so running it again is harmless. Fill in the rest of `.env`:
 | `UHURA_LLM` | Language model of the agent, default `gemini-3.5-flash` (why: [verified.md](verified.md#choice-of-language-model)) |
 | `UHURA_TOKENS` | Who may use the service: `name:token,name:token` |
 | `UHURA_TOOL_SECRET` | Shared secret between the agent's tools and the service |
-| `UHURA_DB` | SQLite file, default `data/uhura.db` |
+| `UHURA_DB` | SQLite file; leave unset (default `data/uhura.db`, in Docker `/data/uhura.db`) |
 | `UHURA_ALLOWED_COUNTRIES` | Countries that may be called, e.g. `DE,AT` |
 | `UHURA_DAILY_CALLS`, `UHURA_MONTHLY_MINUTES`, `UHURA_DAILY_REHEARSALS` | Per-person limits |
 | `UHURA_PROGRESS` | `on` (default) or `off`: whether calls report progress unless the brief says otherwise |
@@ -216,13 +216,20 @@ docker build -t uhura .
 docker run --env-file .env -p 8787:8787 -v uhura-data:/data uhura
 ```
 
-The image runs as a non-root user and keeps its database in `/data`. Setup commands run
-from the same image:
+The image runs as a non-root user and keeps its database in `/data`. Do not set
+`UHURA_DB` in the `.env` you pass with `--env-file`: it overrides the image's
+`/data/uhura.db`, and a relative path such as `data/uhura.db` makes the container stop with
+"Permission denied: 'data'". Files created by `uhura init` or from `.env.example` leave it
+unset; in an older `.env`, delete the line. Setup commands run from the same image:
 
 ```sh
 docker run --rm --env-file .env uhura uhura setup-agent
 docker run --rm --env-file .env uhura uhura setup-tools --url https://uhura.example.org
 ```
+
+`scripts/docker_smoke.sh` builds the image and runs it this way with an env file made from
+`.env.example`, and checks that it starts, answers, runs as a non-root user and keeps its
+database in the volume. CI runs it on every push.
 
 ## Hosting for several people
 
