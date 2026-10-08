@@ -44,6 +44,9 @@ class VoiceClient(Protocol):
     async def get_conversation(self, conversation_id: str) -> dict[str, Any]:
         """Return {"status", "transcript": [{"role", "message"}], "duration_secs", "error", "cost"}."""
 
+    async def delete_conversation(self, conversation_id: str) -> None:
+        """Delete the provider's copy of a conversation, transcript included."""
+
     async def open_text_session(
         self, *, prompt: str, first_message: str, language: str, call_id: str, voicemail: str = ""
     ) -> TextSession:
@@ -176,6 +179,10 @@ class ElevenLabsClient:
             "error": _error_text(metadata),
             "cost": _cost(metadata),
         }
+
+    async def delete_conversation(self, conversation_id: str) -> None:
+        resp = await self._http.delete(f"/v1/convai/conversations/{conversation_id}")
+        resp.raise_for_status()
 
     async def open_text_session(
         self, *, prompt: str, first_message: str, language: str, call_id: str, voicemail: str = ""

@@ -145,7 +145,7 @@ def test_setup_needs_an_api_key():
 
 
 def test_tools_carry_the_call_id_and_reference_the_secret():
-    ask, final, progress = tool_configs("https://uhura.example/", "sec_1", ask_timeout=100)
+    ask, final, progress, refused = tool_configs("https://uhura.example/", "sec_1", ask_timeout=100)
     assert ask["api_schema"]["url"] == "https://uhura.example/agent-tools/ask_principal"
     assert ask["api_schema"]["request_headers"] == {"X-Uhura-Secret": {"secret_id": "sec_1"}}
     properties = ask["api_schema"]["request_body_schema"]["properties"]
@@ -163,6 +163,10 @@ def test_tools_carry_the_call_id_and_reference_the_secret():
     assert "tool_call_sound" not in progress
     stage = progress["api_schema"]["request_body_schema"]["properties"]["stage"]
     assert stage["enum"] == ["menu", "hold", "talking", "wrapping_up"]
+    # A refusal must reach the service before the call ends, so it is not async.
+    assert refused["name"] == "consent_refused" and "execution_mode" not in refused
+    assert refused["pre_tool_speech"] == "off"
+    assert list(refused["api_schema"]["request_body_schema"]["properties"]) == ["call_id"]
 
 
 def test_setup_tools_creates_secret_and_tools_and_attaches_them():
@@ -172,6 +176,7 @@ def test_setup_tools_creates_secret_and_tools_and_attaches_them():
         "ask_principal": "tool_ask_principal",
         "final_check": "tool_final_check",
         "report_progress": "tool_report_progress",
+        "consent_refused": "tool_consent_refused",
     }
     assert api.sent("POST", "/v1/convai/secrets") == [
         {"type": "new", "name": SECRET_NAME, "value": "tool-secret-0123456789abcdef"}
@@ -196,6 +201,7 @@ def test_setup_tools_updates_existing_tools_and_secret_in_place():
         "ask_principal": "tool_old",
         "final_check": "tool_final_check",
         "report_progress": "tool_report_progress",
+        "consent_refused": "tool_consent_refused",
     }
     assert api.sent("POST", "/v1/convai/secrets") == []
     assert api.sent("PATCH", "/v1/convai/secrets/sec_old") == [
@@ -203,7 +209,7 @@ def test_setup_tools_updates_existing_tools_and_secret_in_place():
     ]
     updated = api.sent("PATCH", "/v1/convai/tools/tool_old")[0]
     assert updated["tool_config"]["api_schema"]["url"].startswith("https://new.example/")
-    assert len(api.sent("POST", "/v1/convai/tools")) == 2
+    assert len(api.sent("POST", "/v1/convai/tools")) == 3
 
 
 @pytest.mark.parametrize(

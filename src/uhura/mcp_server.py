@@ -105,7 +105,9 @@ def build(client_for: ClientFor) -> MCPServer:
     async def get_call(ctx: Context, call_id: str) -> dict[str, Any]:
         """Status, duration, transcript and cost of a call. `cost` (once the call has ended)
         has the ElevenLabs credits charged, the billed minutes after the silence discount,
-        and ElevenLabs' dollar prices for the voice platform and the language model."""
+        and ElevenLabs' dollar prices for the voice platform and the language model.
+        If the person called refused consent, `consent_refused_at` is set and there is no
+        transcript."""
         return await _call(ctx, lambda c: c.show(call_id))
 
     @mcp.tool()

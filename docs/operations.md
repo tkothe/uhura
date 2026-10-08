@@ -57,6 +57,11 @@ follow-up instruction.
   draft shows the full message. The call shows as `done` with the greeting and the
   message in the transcript.
 - **The other person hangs up.** The call ends as `done` with the transcript so far.
+- **The other person refuses transcription.** The agent apologises, says you will get in
+  touch personally, and hangs up. The call ends as `done` without a transcript: Uhura
+  keeps only that consent was refused, the time, duration and cost, and deletes the
+  conversation at ElevenLabs. A refusal still costs credits (a 29 s call cost 417, about
+  $0.04). See [architecture.md](architecture.md#what-is-stored-where).
 - **The result arrives after the call.** There is no live transcript of a phone call; the
   transcript appears a few seconds after it ends. Rehearsals do show the conversation live.
 - **No audio is kept**, at Uhura or at ElevenLabs. ElevenLabs lists each conversation in

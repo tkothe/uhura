@@ -247,6 +247,61 @@ def test_progress_reports_become_events_only_when_the_call_asked_for_them(run):
     run(go())
 
 
+def test_refused_consent_keeps_no_transcript(run):
+    async def go():
+        client, voice = make()
+        call_id = await draft(client)
+        await client.post(f"/calls/{call_id}/confirm", headers=AUTH)
+        resp = await client.post("/agent-tools/consent_refused", json={"call_id": call_id}, headers=TOOL)
+        assert resp.json()["recorded"] is True
+        refused_at = client.manager.store.get_call(call_id)["consent_refused_at"]
+        # A second report does not move the time of the refusal.
+        await client.post("/agent-tools/consent_refused", json={"call_id": call_id}, headers=TOOL)
+        assert client.manager.store.get_call(call_id)["consent_refused_at"] == refused_at
+        events = (await client.get(f"/calls/{call_id}/events?timeout=0", headers=AUTH)).json()["events"]
+        assert [e["message"] for e in events if e["type"] == "consent_refused"] == [phrases.CONSENT_REFUSED]
+
+        voice.finish()
+        call = await status_is(client, call_id, "done")
+        # Only the fact remains: when, how long, what it cost. ElevenLabs' copy is deleted too.
+        assert call["transcript"] is None and call["consent_refused_at"] == refused_at
+        assert call["duration_secs"] == 42 and call["cost"]["credits"] == 900
+        assert voice.deleted == ["conv_1"]
+
+    run(go())
+
+
+def test_refused_consent_drops_the_transcript_even_if_elevenlabs_keeps_it(run):
+    async def go():
+        client, voice = make()
+        voice.delete_fails = True
+        call_id = await draft(client)
+        await client.post(f"/calls/{call_id}/confirm", headers=AUTH)
+        await client.post("/agent-tools/consent_refused", json={"call_id": call_id}, headers=TOOL)
+        voice.finish()
+        call = await status_is(client, call_id, "done")
+        assert call["transcript"] is None and voice.deleted == []
+
+    run(go())
+
+
+def test_consent_refused_in_a_rehearsal_does_not_mark_the_call(run):
+    async def go():
+        client, voice = make()
+        call_id = await draft(client)
+        await client.post(f"/calls/{call_id}/rehearsal", headers=AUTH)
+        await client.post("/agent-tools/consent_refused", json={"call_id": call_id}, headers=TOOL)
+        await client.delete(f"/calls/{call_id}/rehearsal", headers=AUTH)
+        await status_is(client, call_id, "draft")
+        # The real call afterwards keeps its transcript; the rehearsal only showed the tool.
+        await client.post(f"/calls/{call_id}/confirm", headers=AUTH)
+        voice.finish()
+        call = await status_is(client, call_id, "done")
+        assert call["transcript"] == [{"role": "agent", "message": "Guten Tag"}] and voice.deleted == []
+
+    run(go())
+
+
 def test_agent_tools_need_secret_and_a_live_call(run):
     async def go():
         client, _ = make()

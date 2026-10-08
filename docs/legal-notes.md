@@ -22,8 +22,12 @@ there. Whether that transient processing counts as "recording" under § 201 is, 
 we know, not settled. The opening line's request for agreement is the mitigation: if the
 person agrees and continues, the processing is not unauthorised.
 
-**If the person objects**, the agent is instructed to apologise and end the call. This is
-a rule the language model follows, not a technical block.
+**If the person objects**, the agent is instructed to report the objection with the
+`consent_refused` tool, apologise and end the call. This is a rule the language model
+follows, not a technical block. What happens to the data once reported is in code:
+ElevenLabs transcribes as the call runs, so the opening and the refusal itself have
+already been transcribed; Uhura discards that transcript, deletes the conversation at
+ElevenLabs, and keeps only that consent was refused, with time, duration and cost.
 
 **Information only.** The agent is instructed not to book, buy, cancel or agree to
 anything, so a call cannot create an obligation for the person it is made for.
@@ -70,7 +74,7 @@ it calls for that no audio is kept.
 - The conversation text is also processed by the provider of the language model selected
   in `UHURA_LLM`.
 - Uhura deletes its own copies after `UHURA_RETENTION_DAYS`. ElevenLabs' copy follows
-  ElevenLabs' retention setting.
+  ElevenLabs' retention setting, except after a refusal, when both are deleted at once.
 
 ## Not covered here
 

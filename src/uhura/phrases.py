@@ -7,6 +7,7 @@ INSTRUCTION_QUEUED = "Aye, I'll relay that at the next opportunity."
 CLOSED = "Channel closed. Hailing frequencies closed."
 NO_RESPONSE = "No response on any frequency, Captain."
 REFUSED = "I can't open that channel:"
+CONSENT_REFUSED = "They declined, Captain. I'm closing the channel and keeping no record of what was said."
 STANDING_BY = "Standing by on this channel."
 # "The Man Trap" (1966), for anyone reading the source on a long debugging night.
 EASTER_EGG = "Mr. Spock, sometimes I think if I hear that word 'frequency' once more, I'll cry."

@@ -50,6 +50,8 @@ class FakeVoice:
         self.rehearsals: list[dict] = []
         self.delay = 0.0  # seconds the provider takes to accept a call or rehearsal
         self.error = None  # what get_conversation reports as the error
+        self.deleted: list[str] = []
+        self.delete_fails = False
 
     async def start_call(self, **kwargs):
         await asyncio.sleep(self.delay)
@@ -66,6 +68,11 @@ class FakeVoice:
             "error": self.error,
             "cost": {"credits": 900, "billed_minutes": 0.7, "platform_usd": 0.09, "llm_usd": 0.01},
         }
+
+    async def delete_conversation(self, conversation_id):
+        if self.delete_fails:
+            raise RuntimeError("missing_permissions")
+        self.deleted.append(conversation_id)
 
     async def open_text_session(self, **kwargs):
         await asyncio.sleep(self.delay)

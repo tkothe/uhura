@@ -91,12 +91,14 @@ Enforced by the service, whatever the briefing says:
   that the call is transcribed, and asks for agreement. A briefing cannot change it.
 - People only see their own calls. Calls and transcripts are deleted after
   `UHURA_RETENTION_DAYS`.
+- When the agent reports that the person objected, no transcript of the call is kept,
+  neither by Uhura nor at ElevenLabs; only the refusal, its time, duration and cost.
 - The service does not start with placeholder or short tokens or tool secret (fewer than
   16 characters), since it is usually reachable from the internet.
 
 Asked of the agent through its fixed rules (reliable in tests, but a language model
-follows them, it is not forced to): information only, no bookings or payments; end the
-call if the person objects to transcription; ask instead of inventing facts; in phone menus,
+follows them, it is not forced to): information only, no bookings or payments; report it and end
+the call if the person objects to transcription; ask instead of inventing facts; in phone menus,
 press keys toward the goal and never agree to a recording; stay silent on hold; give the
 fixed, short re-introduction (shown in the draft) to the first person reached after a menu
 or queue; keep turns short and do not repeat the briefing.

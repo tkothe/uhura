@@ -29,6 +29,7 @@ def test_prompt_contains_brief_and_fixed_rules():
     assert "- One runner" in prompt
     assert "Do not mention a budget" in prompt
     assert "ask_principal" in prompt and "final_check" in prompt
+    assert "objects, call the `consent_refused` tool" in prompt
     assert "Never book" in prompt
 
 

@@ -158,6 +158,7 @@ Agent endpoints need the header `X-Uhura-Secret` and only work for calls that ar
 | `POST /agent-tools/ask_principal` | `call_id`, `question`; blocks until answered or timed out |
 | `POST /agent-tools/final_check` | `call_id`; returns queued instructions |
 | `POST /agent-tools/report_progress` | `call_id`, `stage`, `note`; stored as a `progress` event only if the call has `progress` on |
+| `POST /agent-tools/consent_refused` | `call_id`; the person objected. Recorded as `consent_refused_at` and a `consent_refused` event; when the call ends, its transcript is not stored and the conversation is deleted at ElevenLabs. In a rehearsal only the event |
 
 Interactive API documentation is served at `/docs` by the running service.
 
@@ -171,6 +172,15 @@ Interactive API documentation is served at `/docs` by the running service.
 | The language-model provider | The conversation text, as processed by the model chosen in `UHURA_LLM` | Per that provider's terms |
 
 Uhura does not yet shorten ElevenLabs' own transcript retention.
+
+**When the person refuses consent.** ElevenLabs transcribes while the call runs, so the
+words spoken before and including the refusal exist once the call ends. If the agent
+called `consent_refused`, Uhura keeps only that consent was refused (`consent_refused_at`),
+the duration and the cost: it stores no transcript and deletes the conversation at
+ElevenLabs. Both are enforced in code (`service.py`). That the agent calls the tool when
+someone objects is a prompt rule; if it does not, the transcript is kept like any other.
+If the deletion at ElevenLabs fails, Uhura still drops its own copy and logs the
+conversation id, to be deleted in the ElevenLabs dashboard.
 
 ## Code map
 

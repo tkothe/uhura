@@ -25,7 +25,8 @@ CREATE TABLE IF NOT EXISTS calls (
     duration_secs INTEGER,
     transcript TEXT,
     error TEXT,
-    cost TEXT
+    cost TEXT,
+    consent_refused_at REAL
 );
 CREATE TABLE IF NOT EXISTS events (
     seq INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -44,7 +45,7 @@ CREATE TABLE IF NOT EXISTS instructions (
 
 JSON_COLUMNS = ("brief", "transcript", "cost")
 # Columns added after the first release; older databases get them on start.
-ADDED_COLUMNS = {"cost": "TEXT"}
+ADDED_COLUMNS = {"cost": "TEXT", "consent_refused_at": "REAL"}
 # A call in one of these states is in use and must not be purged.
 ACTIVE = ("dialling", "in_progress", "rehearsing")
 

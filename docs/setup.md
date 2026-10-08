@@ -137,9 +137,10 @@ uv run uhura setup-tools           # reads the address from the local ngrok tunn
 ```
 
 `setup-tools` stores the tool secret in ElevenLabs' secret store, creates the tools
-`ask_principal`, `final_check` and `report_progress`, and attaches them to the agent. Run
-it again whenever the public address changes; a free ngrok address changes on every
-restart.
+`ask_principal`, `final_check`, `report_progress` and `consent_refused`, and attaches
+them to the agent. Run it again whenever the public address changes; a free ngrok address
+changes on every restart, and after an update that adds a tool (`uhura check` lists the
+tools it misses).
 
 Only `/agent-tools/*` needs to be reachable from the internet. Those endpoints require
 the tool secret; everything else, including the MCP endpoint `/mcp`, requires a user

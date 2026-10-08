@@ -13,7 +13,7 @@ AGENT = {
                     "skip_turn": {"name": "skip_turn"},
                     "language_detection": None,
                 },
-                "tool_ids": ["t1", "t2", "t3"],
+                "tool_ids": ["t1", "t2", "t3", "t4"],
             }
         }
     },
@@ -29,6 +29,9 @@ AGENT = {
 }
 
 
+TOOL_NAMES = {"t1": "ask_principal", "t2": "final_check", "t3": "report_progress", "t4": "consent_refused"}
+
+
 def tool(name):
     return {"tool_config": {"name": name, "api_schema": {"url": f"https://uhura.invalid/agent-tools/{name}"}}}
 
@@ -41,12 +44,7 @@ def run(agent=AGENT, **overrides):
         if path.startswith("/v1/convai/agents/"):
             return httpx.Response(200, json=agent)
         if path.startswith("/v1/convai/tools/"):
-            return httpx.Response(
-                200,
-                json=tool(
-                    {"t1": "ask_principal", "t2": "final_check", "t3": "report_progress"}[path.rsplit("/", 1)[1]]
-                ),
-            )
+            return httpx.Response(200, json=tool(TOOL_NAMES[path.rsplit("/", 1)[1]]))
         return httpx.Response(404)
 
     values = dict(elevenlabs_api_key="k", elevenlabs_agent_id="agent_1")
@@ -61,6 +59,7 @@ def test_a_complete_agent_passes_all_account_checks_except_what_is_missing():
     assert failing == {"tools can reach this service", "phone number configured"}
     assert results["no audio is stored"] and results["agent requires authentication"]
     assert results["tool ask_principal attached"] and results["tool final_check attached"]
+    assert results["tool consent_refused attached"]
 
 
 def test_unsafe_agent_settings_are_flagged():

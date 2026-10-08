@@ -38,6 +38,8 @@ def _print_call(call: dict) -> None:
     if cost := call.get("cost"):
         usd = sum(v for v in (cost.get("platform_usd"), cost.get("llm_usd")) if v)
         print(f"  cost: {cost['credits']} credits, {cost.get('billed_minutes')} billed min, about ${usd:.2f}")
+    if call.get("consent_refused_at"):
+        print("  consent refused: no transcript kept")
     for turn in call.get("transcript") or []:
         print(f"  {turn['role']:>5}: {turn['message']}")
 
@@ -167,7 +169,7 @@ def watch(client: UhuraClient, call_id: str) -> None:
                         client.answer(call_id, event["seq"], reply)
                     except UhuraError as exc:
                         print(f"  ({exc})")
-            elif event["type"] == "call_ended":
+            elif event["type"] in ("call_ended", "consent_refused"):
                 print(f"\n{event['message']}")
             elif event["type"] == "question_expired":
                 print("  (the agent stopped waiting for that answer)")

@@ -93,6 +93,17 @@ def test_conversation_is_reduced_to_what_uhura_stores():
     }
 
 
+def test_deleting_a_conversation_uses_the_delete_endpoint():
+    seen = []
+
+    def handler(request):
+        seen.append((request.method, request.url.path))
+        return httpx.Response(200, json={})
+
+    asyncio.run(client_with(handler).delete_conversation("conv_9"))
+    assert seen == [("DELETE", "/v1/convai/conversations/conv_9")]
+
+
 def test_an_error_object_becomes_text():
     # As ElevenLabs reported a call cut off when the credits ran out (2026-10-03).
     error = {"code": 1002, "reason": "This request exceeds your quota limit.", "error_type": "dependency_error"}

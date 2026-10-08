@@ -1,4 +1,4 @@
-"""One-time setup of the ElevenLabs side: the generic caller agent and its two tools.
+"""One-time setup of the ElevenLabs side: the generic caller agent and its tools.
 
 `uhura setup-agent` creates the agent (or updates the one named in ELEVENLABS_AGENT_ID).
 `uhura setup-tools` points the agent's tools at the public address of this service; run it
@@ -134,7 +134,7 @@ def setup_agent(
 
 
 def tool_configs(public_url: str, secret_id: str, ask_timeout: float) -> list[dict[str, Any]]:
-    """The two webhook tools the agent uses to reach the Uhura service mid-call."""
+    """The webhook tools the agent uses to reach the Uhura service mid-call."""
     base = public_url.rstrip("/")
     call_id = {"type": "string", "dynamic_variable": "uhura_call_id"}
 
@@ -193,6 +193,15 @@ def tool_configs(public_url: str, secret_id: str, ask_timeout: float) -> list[di
             },
             # Nobody on the line should notice: no waiting, no filler speech, no sound.
             execution_mode="async",
+            pre_tool_speech="off",
+        ),
+        webhook(
+            "consent_refused",
+            "Call this as soon as the person objects to the call or to its transcription, "
+            "before you apologise and end the call.",
+            # Not async: the call often ends right after, and the service must have heard it.
+            5,
+            {},
             pre_tool_speech="off",
         ),
     ]

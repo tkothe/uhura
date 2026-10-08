@@ -91,6 +91,33 @@ def test_watching_a_draft_explains_instead_of_waiting_forever(monkeypatch, capsy
     assert "uhura confirm abc" in capsys.readouterr().out
 
 
+def test_watching_a_refused_call_says_so_and_shows_no_transcript(monkeypatch, capsys):
+    class Refused:
+        def show(self, call_id):
+            return {
+                "id": "abc",
+                "to_number": "+493023125000",
+                "status": "done",
+                "duration_secs": 19,
+                "consent_refused_at": 1.0,
+                "transcript": None,
+            }
+
+        def events(self, call_id, after):
+            return {
+                "status": "done",
+                "events": [
+                    {"seq": 1, "type": "consent_refused", "message": phrases.CONSENT_REFUSED},
+                    {"seq": 2, "type": "call_ended", "message": phrases.CLOSED},
+                ],
+            }
+
+    monkeypatch.setattr(cli, "UhuraClient", Refused)
+    cli.main(["watch", "abc"])
+    out = capsys.readouterr().out
+    assert phrases.CONSENT_REFUSED in out and "consent refused: no transcript kept" in out
+
+
 def test_service_errors_exit_with_the_message(monkeypatch):
     class Broken:
         def show(self, call_id):

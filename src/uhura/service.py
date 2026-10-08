@@ -180,10 +180,15 @@ class CallManager:
         a call left `in_progress` keeps its clients waiting for good."""
         try:
             conv = await self._result(conversation_id, started_at)
+            refused = self.store.get_call(call_id)["consent_refused_at"] is not None
+            if refused:
+                await self._forget(conversation_id)
             self.store.update_call(
                 call_id,
                 status=conv["status"],
-                transcript=conv["transcript"],
+                # Declining stops the call but not the transcription of what was already
+                # said; keep only that consent was refused, with time, duration and cost.
+                transcript=None if refused else conv["transcript"],
                 duration_secs=conv["duration_secs"] or 0,
                 error=conv.get("error") if conv["status"] == "failed" else None,
                 cost=conv.get("cost"),
@@ -195,6 +200,13 @@ class CallManager:
             status = "failed"
         message = phrases.CLOSED if status == "done" else phrases.NO_RESPONSE
         await self.emit(call_id, "call_ended", status=status, message=message)
+
+    async def _forget(self, conversation_id: str) -> None:
+        """Delete ElevenLabs' copy of a conversation. Uhura's own copy is dropped either way."""
+        try:
+            await self.client.delete_conversation(conversation_id)
+        except Exception:
+            log.exception("could not delete conversation %s at ElevenLabs; delete it in the dashboard", conversation_id)
 
     async def _result(self, conversation_id: str, started_at: float) -> dict[str, Any]:
         """Poll the provider until the call is over; give up after `max_call_seconds`."""
@@ -325,6 +337,17 @@ class CallManager:
         if self.store.last_event(call_id, "progress") == {"stage": stage, "note": note}:
             return False
         await self.emit(call_id, "progress", stage=stage, note=note)
+        return True
+
+    async def consent_refused(self, call_id: str) -> bool:
+        """Mark a phone call's transcript for deletion once it ends. Rehearsals transcribe
+        no one and keep no transcript; there the event only shows the tool was used."""
+        call = self.store.get_call(call_id)
+        if call["status"] != "rehearsing":
+            if call["consent_refused_at"] is not None:
+                return False
+            self.store.update_call(call_id, consent_refused_at=time.time())
+        await self.emit(call_id, "consent_refused", message=phrases.CONSENT_REFUSED)
         return True
 
 
@@ -496,6 +519,11 @@ def create_app(settings: Settings | None = None, client: VoiceClient | None = No
         note = str(body.get("note", "")).strip()[:500]
         recorded = await manager.report_progress(live_call(body), stage, note)
         return {"recorded": recorded, "next": PROGRESS_DONE}
+
+    @app.post("/agent-tools/consent_refused", dependencies=[Depends(agent_tool)])
+    async def consent_refused(body: dict[str, Any]) -> dict[str, Any]:
+        await manager.consent_refused(live_call(body))
+        return {"recorded": True, "next": "Apologise, say goodbye and end the call."}
 
     @app.post("/agent-tools/final_check", dependencies=[Depends(agent_tool)])
     def final_check(body: dict[str, Any]) -> dict[str, Any]:

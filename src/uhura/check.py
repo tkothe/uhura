@@ -76,7 +76,7 @@ def check_account(settings: Settings, transport: httpx.BaseTransport | None = No
         if resp.status_code == 200:
             config = resp.json()["tool_config"]
             tools[config["name"]] = config
-    for name in ("ask_principal", "final_check", "report_progress"):
+    for name in ("ask_principal", "final_check", "report_progress", "consent_refused"):
         yield f"tool {name} attached", name in tools, ""
     for base in sorted({t["api_schema"]["url"].split("/agent-tools/")[0] for t in tools.values()}):
         try:
